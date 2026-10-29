@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getCustomers, createCustomer, deleteCustomer } from "@/lib/customers.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -35,13 +36,16 @@ function Index() {
   const [form, setForm] = useState({ name: "", email: "", city: "", plan: "Basic" });
   const [error, setError] = useState<string | null>(null);
 
+  const fetchAll = useServerFn(getCustomers);
+  const addFn = useServerFn(createCustomer);
+  const delFn = useServerFn(deleteCustomer);
+
   async function load() {
-    const { data, error } = await supabase
-      .from("customers")
-      .select("id,name,email,city,plan,created_at")
-      .order("created_at", { ascending: false });
-    if (error) setError(error.message);
-    setRows(data ?? []);
+    try {
+      setRows(await fetchAll());
+    } catch (e) {
+      setError((e as Error).message);
+    }
     setLoading(false);
   }
 
@@ -52,19 +56,17 @@ function Index() {
   async function add(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const { error } = await supabase.from("customers").insert({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      city: form.city.trim() || null,
-      plan: form.plan,
-    });
-    if (error) return setError(error.message);
+    try {
+      await addFn({ data: { name: form.name, email: form.email, city: form.city.trim() || null, plan: form.plan as "Basic" } });
+    } catch (e) {
+      return setError((e as Error).message);
+    }
     setForm({ name: "", email: "", city: "", plan: "Basic" });
     load();
   }
 
   async function remove(id: string) {
-    await supabase.from("customers").delete().eq("id", id);
+    await delFn({ data: { id } });
     load();
   }
 
