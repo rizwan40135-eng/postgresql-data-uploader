@@ -70,11 +70,6 @@ function Index() {
     load();
   }
 
-  async function remove(id: string) {
-    await supabase.from("customers").delete().eq("id", id);
-    load();
-  }
-
   return (
     <main className="mx-auto max-w-4xl p-6 space-y-6">
       <header>
