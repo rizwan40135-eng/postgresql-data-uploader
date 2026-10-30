@@ -9,7 +9,7 @@ import { loadEnv } from "vite";
 
 // Vite does not put non-VITE_ vars from .env into process.env. Load server-only DB vars
 // so DATABASE_URL in .env (e.g. on EC2) is picked up by the server data layer.
-const fileEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
+const fileEnv = loadEnv(process.env["NODE_ENV"] ?? "development", process.cwd(), "");
 for (const key of ["DATABASE_URL", "DATABASE_SSL"]) {
   if (fileEnv[key] && !process.env[key]) process.env[key] = fileEnv[key];
 }
